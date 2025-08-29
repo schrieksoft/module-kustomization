@@ -28,6 +28,9 @@ jobs:
       - name: Determine Version
         uses: gittools/actions/gitversion/execute@v3.1.11
         id: gitversion
+        with:
+          useConfigFile: true
+          configFilePath: gitversion.yaml
 
       - name: Display GitVersion outputs
         run: |
@@ -49,10 +52,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.gitversion.outputs.SemVer }}
-          release_name: Release v${{ steps.gitversion.outputs.SemVer }}
+          tag_name: ${{ steps.gitversion.outputs.SemVer }}
+          release_name: Release ${{ steps.gitversion.outputs.SemVer }}
           body: |
-            Release v${{ steps.gitversion.outputs.SemVer }}
+            Release ${{ steps.gitversion.outputs.SemVer }}
             
             This release was automatically generated from commit ${{ github.sha }}.
           draft: false
