@@ -1,0 +1,59 @@
+name: Release
+
+# This GitHub action creates a release when commits are pushed to main branch.
+# It uses GitVersion to determine semantic version and creates releases with tags.
+
+on:
+  push:
+    branches:
+      - main
+
+# Releases need permissions to read and write the repository contents.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for GitVersion to analyze history
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3.1.11
+        with:
+          versionSpec: 5.x
+
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v3.1.11
+        id: gitversion
+
+      - name: Display GitVersion outputs
+        run: |
+          echo "Version: ${{ steps.gitversion.outputs.SemVer }}"
+          echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
+
+      - name: Check if version changed
+        id: version_check
+        run: |
+          if [ "${{ steps.gitversion.outputs.CommitsSinceVersionSource }}" -gt "0" ]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        if: steps.version_check.outputs.version_changed == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.gitversion.outputs.SemVer }}
+          release_name: Release v${{ steps.gitversion.outputs.SemVer }}
+          body: |
+            Release v${{ steps.gitversion.outputs.SemVer }}
+            
+            This release was automatically generated from commit ${{ github.sha }}.
+          draft: false
+          prerelease: false
