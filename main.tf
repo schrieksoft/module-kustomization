@@ -1,5 +1,4 @@
 
-
 # first loop through resources in ids_prio[0]
 resource "kustomization_resource" "p0" {
   for_each = data.kustomization_overlay.this.ids_prio[0]
@@ -26,7 +25,7 @@ resource "kustomization_resource" "p1" {
   wait = var.wait_for_workloads
 
   timeouts {
-    
+
     create = var.wait_for_workloads_timeout_create
     update = var.wait_for_workloads_timeout_update
   }
